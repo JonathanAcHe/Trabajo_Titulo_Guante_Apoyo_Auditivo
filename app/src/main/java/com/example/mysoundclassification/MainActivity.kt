@@ -56,6 +56,8 @@ class MainActivity : AppCompatActivity() {
     var tmpIn: InputStream? = null
     var tmpOut: OutputStream? = null
     var textDetec: String? = null
+    var cuentaletra : Int= 0;
+    val control = arrayOf("X", "Y", "Z")
 
     //-----------------------------------
 
@@ -210,18 +212,21 @@ class MainActivity : AppCompatActivity() {
 
             if(outputStr.contains("Baby cry") || outputStr.contains("infant")){
                 println("DETECTO Baby cry")
-                arduinoSignal("C")
+                arduinoSignal("C", cuentaletra)
+                cuentaletra = cuentaletra + 1;
                 textDetec = "BEBE LLORANDO"
                 //imagView.setImageResource(R.drawable.bbcry)
             }
             else if(outputStr.contains("Siren") || outputStr.contains("Smoke") || outputStr.contains("Fire") || outputStr.contains("Beep, bleep")){
                 println("DETECTO Siren")
-                arduinoSignal("S")
+                arduinoSignal("S", cuentaletra)
+                cuentaletra = cuentaletra + 1;
                 textDetec = "PELIGRO"
             }
             else if(outputStr.contains("Doorbell") || outputStr.contains("Ding-dong") ){
                 println("DETECTO Doorbell - Ding-dong")
-                arduinoSignal("D")
+                arduinoSignal("D", cuentaletra)
+                cuentaletra = cuentaletra + 1;
                 textDetec = "TIMBRE CASA"
             } else {
                 textDetec = outputStr
@@ -240,11 +245,48 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun arduinoSignal (letra: String?) {
+    fun arduinoSignal (letra: String?, cuenta: Int) {
         println("arduinoSignal")
-        println("Arduino Letra $letra - btSocket: $btSocket")
+        println("Arduino Letra $letra - btSocket: $btSocket - Cuenta: $cuenta")
 
-        MyConexionBT?.write(letra, btSocket)
+        if (cuenta==0 || cuenta==1 || cuenta==2)
+        {
+            control[cuenta] = letra.toString()
+            println( control[0]+ control[1]+ control[2])
+            runOnUiThread {
+
+                if (letra != null) {
+                    MyConexionBT?.write(letra, btSocket)
+                }
+
+            }
+        }
+
+        if (cuenta==3 || cuenta==4)
+        {
+            if(control[0]==control[1] && control[0]==control[2] && control[1]==control[2]){
+                println("No enviar bluetooth")
+                control[0] = letra.toString()
+            }
+            else{
+                runOnUiThread {
+
+                    if (letra != null) {
+                        MyConexionBT?.write(letra, btSocket)
+                    }
+
+                }
+
+            }
+
+
+        }
+
+        if (cuenta==5)
+        {
+            cuentaletra = 0
+
+        }
 
     }
 
